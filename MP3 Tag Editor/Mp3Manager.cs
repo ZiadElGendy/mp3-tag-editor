@@ -1,4 +1,5 @@
 using Id3;
+using MP3_Tag_Editor.Exceptions;
 
 namespace MP3_Tag_Editor;
 
@@ -18,7 +19,7 @@ public class Mp3Manager
         }
         else
         {
-            throw new ArgumentException("Invalid path", nameof(path));
+            throw new InvalidMp3PathException(path);
         }
 
         return mp3Files;
@@ -36,7 +37,7 @@ public class Mp3Manager
         }
         else
         {
-            throw new ArgumentException("File is not an MP3", nameof(filePath));
+            throw new InvalidMp3PathException(filePath);
         }
     }
 
@@ -52,7 +53,7 @@ public class Mp3Manager
                 var mp3File = LoadMp3FileFromPath(filePath);
                 mp3Files.Add(mp3File);
             }
-            catch (ArgumentException) { /* Ignored, program proceeds to next file */ }
+            catch (InvalidMp3PathException) { /* Ignored, program proceeds to next file */ }
         }
 
         return mp3Files;
