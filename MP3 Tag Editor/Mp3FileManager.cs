@@ -33,7 +33,7 @@ public static class Mp3FileManager
     {
         if (!IsMp3FileExtensionValid(filePath))
             throw new InvalidMp3PathException(filePath);
-        return new Mp3(filePath);
+        return new Mp3(filePath, Mp3Permissions.ReadWrite);
     }
 
     /// <summary>
