@@ -16,6 +16,8 @@ public static class Mp3Manager
     /// </summary>
     public static void ModifyMp3Tags(string inputFilePath, string selectedProperty, string inputValue)
     {
+        //TODO: Change function to only return tag to fit project design (Writing handled by file manager)
+
         LoadFilesToMemory(inputFilePath);
         dynamic newValue = TypeCastValue(selectedProperty, inputValue);
 
