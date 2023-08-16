@@ -62,7 +62,7 @@ public static class Mp3FileManager
     }
 
     /// <summary>
-    ///     Disposes and frees the <see cref="Mp3"/> in the given list.
+    ///     Disposes and frees the <see cref="Mp3"/> files in the given list.
     /// </summary>
     /// <param name="mp3Files">The list of <see cref="Mp3"/> files to dispose of.</param>
     public static void DisposeMp3Files(IEnumerable<Mp3> mp3Files)
