@@ -11,6 +11,9 @@ public static class Mp3Manager
 {
     private static List<Mp3> _workingMp3Files = new();
 
+    private const string _mp3TestingDirectory =
+        @"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s";
+
     /// <summary>
     /// Modifies the given property of the given <see cref="Mp3"/> file.
     /// </summary>
@@ -143,6 +146,7 @@ public static class Mp3Manager
     /// <param name="inputFilePath">The path of the file or directory.</param>
     private static void LoadFilesToMemory(string inputFilePath)
     {
+        Mp3FileManager.DisposeMp3Files(_workingMp3Files);
         _workingMp3Files = (List<Mp3>)Mp3FileManager.LoadMp3Files(inputFilePath);
     }
 
@@ -169,13 +173,13 @@ public static class Mp3Manager
 
     public static void ModifyMp3TagsTest()
     {
-        ModifyMp3Tags(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s","Year", "2023");
-        ModifyMp3Tags(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s", "Artist", "Me, You");
+        ModifyMp3Tags(_mp3TestingDirectory,"Year", "2023");
+        ModifyMp3Tags(_mp3TestingDirectory, "Artist", "Me, You");
     }
 
     public static void ModifyArtistTest()
     {
-        string[] musicFiles = Directory.GetFiles(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s","*.mp3");
+        string[] musicFiles = Directory.GetFiles(_mp3TestingDirectory,"*.mp3");
         foreach (string musicFile in musicFiles)
         {
             using (var mp3 = new Mp3(musicFile))
