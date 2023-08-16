@@ -31,10 +31,12 @@ public static class Mp3Manager
             try
             {
                 var tagPropertyInfo =
-                    newTag.GetType().GetProperty(selectedProperty); //dynamically get selected property
+                    newTag.GetType().GetProperty(selectedProperty);
+
                 var tagPropertyFrame =
-                    Activator.CreateInstance(tagPropertyInfo.PropertyType,
-                        newValue); //create new instance of property type with parameter
+                    Activator.CreateInstance(tagPropertyInfo.PropertyType, newValue);
+                //Directly setting it didn't seem to work so I created a frame manually
+
                 tagPropertyInfo.SetValue(newTag, tagPropertyFrame, null);
 
                 Console.WriteLine(tagPropertyInfo.GetValue(newTag, null));
@@ -47,31 +49,31 @@ public static class Mp3Manager
         }
     }
 
-    //FIXME: If blocks are never entered
     /// <summary>
     ///  Casts the given inputValue <see cref="string"/> to the appropriate type according to selectedProperty
     /// </summary>
     /// <returns> A dynamic type value </returns>
-    private static dynamic TypeCastValue(string selectedProperty, string inputString)
+    private static dynamic TypeCastValue(string selectedProperty, string inputValue)
     {
-        if (Enum.IsDefined(typeof(StringFrames), inputString))
+
+        if (Enum.IsDefined(typeof(StringFrames), selectedProperty))
         {
-            return inputString;
+            return inputValue;
         }
-        else if (Enum.IsDefined(typeof(IntFrames), inputString))
+        else if (Enum.IsDefined(typeof(IntFrames), selectedProperty))
         {
-            return Int32.Parse(inputString);
+            return Int32.Parse(inputValue);
         }
-        else if (Enum.IsDefined(typeof(DateTimeFrames), inputString))
+        else if (Enum.IsDefined(typeof(DateTimeFrames), selectedProperty))
         {
-            return DateTime.Parse(inputString);
+            return DateTime.Parse(inputValue);
         }
-        else if (Enum.IsDefined(typeof(TimeSpanFrames), inputString))
+        else if (Enum.IsDefined(typeof(TimeSpanFrames), selectedProperty))
         {
-            return TimeSpan.Parse(inputString);
+            return TimeSpan.Parse(inputValue);
         }
 
-        throw new InvalidCastException($"{selectedProperty} is unsupported!");
+        throw new InvalidId3PropertyException($"{selectedProperty} is an unsupported property!");
     }
 
     /// <summary>
@@ -111,19 +113,17 @@ public static class Mp3Manager
 
     public static void ModifyArtistTest()
     {
-        string[] musicFiles =
-            Directory.GetFiles(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s",
-                "*.mp3");
+        string[] musicFiles = Directory.GetFiles(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s","*.mp3");
         foreach (string musicFile in musicFiles)
         {
             using (var mp3 = new Mp3(musicFile))
             {
-                Id3Tag tag = mp3.GetTag(Id3TagFamily.Version2X);
-
-                List<string> artists = new List<string>();
-                artists.Add("Me");
-
-                //tag.Artists = artists;
+                Id3Tag tag = mp3.GetTag(Id3TagFamily.Version1X);
+                tag.Artists.Value.Add("Me");
+                tag.Artists.Value.Add("You");
+                tag.Year = 1000;
+                Console.WriteLine(tag.Artists);
+                Console.WriteLine(tag.Year);
             }
         }
     }
