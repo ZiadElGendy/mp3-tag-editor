@@ -1,27 +1,78 @@
-using System.Reflection;
 using Id3;
-using Id3.Frames;
-using Microsoft.VisualBasic.CompilerServices;
 using MP3_Tag_Editor.Enums;
 using MP3_Tag_Editor.Exceptions;
 
 namespace MP3_Tag_Editor;
 
 /// <summary>
-///   Provides methods for editing Id3 tags of MP3 files.
+///  Provides methods for editing Id3 tags of MP3 files.
 /// </summary>
 public static class Mp3Manager
 {
-    private static List<Mp3> _workingMp3Files = new List<Mp3>();
+    private static List<Mp3> _workingMp3Files = new();
 
     /// <summary>
-    ///  Modifies the given property of the given <see cref="Mp3"/> file.
+    /// Modifies the given property of the given <see cref="Mp3"/> file.
     /// </summary>
     public static void ModifyMp3Tags(string inputFilePath, string selectedProperty, string inputValue)
     {
         LoadFilesToMemory(inputFilePath);
         dynamic newValue = TypeCastValue(selectedProperty, inputValue);
 
+        if (newValue.GetType().IsArray)
+        {
+            ModifyListMp3Tags(selectedProperty, newValue);
+        }
+        else
+        {
+            ModifyNonListMp3Tags(selectedProperty, newValue);
+        }
+    }
+
+    /// <summary>
+    /// Modifies the inputted property of the working <see cref="Mp3"/> file.
+    /// Applies to "Artists" and "Composers" properties.
+    /// </summary>
+    private static void ModifyListMp3Tags(string selectedProperty, string[] newValue)
+    {
+        foreach (var mp3 in _workingMp3Files)
+        {
+            var newTag = mp3.GetTag(GetTagFamily(mp3));
+
+            switch (selectedProperty)
+            {
+                case "Artists":
+                case "Artist":
+                    foreach (string value in newValue)
+                    {
+                        Console.WriteLine($"value {value}");
+                        newTag.Artists.Value.Add(value);
+                        Console.WriteLine($"artists after: {newTag.Artists}");
+                    }
+                    break;
+
+                case "Composers":
+                case "Composer":
+                    foreach (string value in newValue)
+                    {
+                        newTag.Composers.Value.Add(value);
+                    }
+                    break;
+
+                default:
+                    throw new InvalidId3TagException("Unknown error occured!");
+            }
+
+            mp3.WriteTag(newTag);
+        }
+    }
+
+    /// <summary>
+    /// Modifies the inputted property of the working <see cref="Mp3"/> file.
+    /// Applies to most properties.
+    /// </summary>
+    private static void ModifyNonListMp3Tags(string selectedProperty, dynamic newValue)
+    {
         foreach (var mp3 in _workingMp3Files)
         {
             var newTag = mp3.GetTag(GetTagFamily(mp3));
@@ -38,21 +89,24 @@ public static class Mp3Manager
                 //Directly setting it didn't seem to work so I created a frame manually
 
                 tagPropertyInfo.SetValue(newTag, tagPropertyFrame, null);
-
-                Console.WriteLine(tagPropertyInfo.GetValue(newTag, null));
             }
             catch (Exception e)
             {
-                Console.WriteLine($"Could not change value due to error: {e.StackTrace}");
+                Console.WriteLine($"Could not change value due to error: {e.Message}");
                 throw;
             }
+
+            mp3.WriteTag(newTag);
         }
     }
 
     /// <summary>
-    ///  Casts the given inputValue <see cref="string"/> to the appropriate type according to selectedProperty
+    /// Casts the given inputValue <see cref="string"/> to the appropriate type according to selectedProperty.
     /// </summary>
-    /// <returns> A dynamic type value </returns>
+    /// <returns>
+    /// A dynamically typed value which can be <see cref="string"/>, <see cref="Int32"/>, <see cref="DateTime"/>,
+    /// <see cref="TimeSpan"/> or an array of <see cref="string"/>s
+    /// </returns>
     private static dynamic TypeCastValue(string selectedProperty, string inputValue)
     {
 
@@ -66,11 +120,16 @@ public static class Mp3Manager
         }
         else if (Enum.IsDefined(typeof(DateTimeFrames), selectedProperty))
         {
-            return DateTime.Parse(inputValue);
+            return DateTime.Parse(inputValue, Program.CultureInfo);
         }
         else if (Enum.IsDefined(typeof(TimeSpanFrames), selectedProperty))
         {
-            return TimeSpan.Parse(inputValue);
+            return TimeSpan.Parse(inputValue, Program.CultureInfo);
+        }
+        else if (Enum.IsDefined(typeof(StringListFrames), selectedProperty))
+        {
+            inputValue = inputValue.Replace(" ", "");
+            return inputValue.Split(',');
         }
 
         throw new InvalidId3PropertyException($"{selectedProperty} is an unsupported property!");
@@ -108,12 +167,13 @@ public static class Mp3Manager
 
     public static void ModifyMp3TagsTest()
     {
-        ModifyMp3Tags(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s", "Year", "2021");
+        ModifyMp3Tags(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s","Year", "2023");
+        ModifyMp3Tags(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s", "Artist", "Me, You");
     }
 
     public static void ModifyArtistTest()
     {
-        string[] musicFiles = Directory.GetFiles(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s","*.mp3");
+        string[] musicFiles = Directory.GetFiles(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s","*.mp3");
         foreach (string musicFile in musicFiles)
         {
             using (var mp3 = new Mp3(musicFile))
