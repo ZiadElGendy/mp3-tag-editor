@@ -5,5 +5,7 @@ public enum StringListFrames
     Artists,
     Artist,
     Composer,
-    Composers
+    Composers,
+    Lyricist,
+    Lyricists,
 }
