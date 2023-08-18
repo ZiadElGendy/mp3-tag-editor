@@ -15,7 +15,7 @@ public static class Mp3Manager
     private static List<Mp3> _workingMp3Files = new();
 
     private const string Mp3TestingDirectory =
-        @"D:\Documents\Programming\Group Project\2023\ZMBY 3\Sample MP3s";
+        @"D:\Documents\DIRECTORY WITH MP3 FILES"; //Change this to your own directory
 
     #endregion
 
@@ -57,7 +57,7 @@ public static class Mp3Manager
     /// </returns>
     private static IEnumerable<Id3Tag> ModifyListMp3Tags(string selectedProperty, IEnumerable<string> newValue)
     {
-        Id3Tag[] newTags = new Id3Tag[_workingMp3Files.Count];
+        var newTags = new Id3Tag[_workingMp3Files.Count];
         newValue = newValue.ToArray(); //prevent multiple enumeration
 
         foreach (var mp3 in _workingMp3Files)
@@ -83,7 +83,7 @@ public static class Mp3Manager
                     break;
 
                 default:
-                    throw new InvalidId3TagException("Unknown error occured!");
+                    throw new InvalidId3TagException(mp3, "Unknown error occurred!");
             }
 
             newTags[_workingMp3Files.IndexOf(mp3)] = newTag;
@@ -102,7 +102,7 @@ public static class Mp3Manager
     /// </returns>
     private static IEnumerable<Id3Tag> ModifyNonListMp3Tags(string selectedProperty, dynamic newValue)
     {
-        Id3Tag[] newTags = new Id3Tag[_workingMp3Files.Count];
+        var newTags = new Id3Tag[_workingMp3Files.Count];
         foreach (var mp3 in _workingMp3Files)
         {
             var newTag = mp3.GetTag(GetTagFamily(mp3));
@@ -119,6 +119,11 @@ public static class Mp3Manager
                 //Directly setting it didn't seem to work so I created a frame manually
 
                 tagPropertyInfo.SetValue(newTag, tagPropertyFrame, null);
+            }
+            catch (NullReferenceException e)
+            {
+                Console.WriteLine($"Invalid ID3 tag property! {e.Message}");
+                throw;
             }
             catch (Exception e)
             {
@@ -154,7 +159,6 @@ public static class Mp3Manager
             inputValue = inputValue.Replace(" ", "");
             return inputValue.Split(',');
         }
-
         else if (Enum.IsDefined(typeof(DateTimeFrames), selectedProperty))
         {
             return DateTime.Parse(inputValue, Program.CultureInfo);
@@ -163,7 +167,6 @@ public static class Mp3Manager
         {
             return TimeSpan.Parse(inputValue, Program.CultureInfo);
         }
-
         else if (selectedProperty == "FileAudioType")
         {
             return (FileAudioType)Enum.Parse(typeof(FileAudioType), inputValue);
@@ -173,7 +176,7 @@ public static class Mp3Manager
             return (PictureType)Enum.Parse(typeof(PictureType), inputValue);
         }
 
-        throw new InvalidId3PropertyException($"{selectedProperty} is an unsupported property!");
+        throw new InvalidId3PropertyException(selectedProperty);
     }
 
     /// <summary>
