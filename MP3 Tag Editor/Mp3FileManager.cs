@@ -33,7 +33,7 @@ public static class Mp3FileManager
     {
         if (!IsMp3FileExtensionValid(filePath))
             throw new InvalidMp3PathException(filePath);
-        return new Mp3(filePath);
+        return new Mp3(filePath, Mp3Permissions.ReadWrite);
     }
 
     /// <summary>
@@ -59,5 +59,17 @@ public static class Mp3FileManager
         var filesPaths = Directory.EnumerateFiles(directoryPath, "*.mp3");
 
         return filesPaths.Select(LoadMp3FileFromPath).ToList();
+    }
+
+    /// <summary>
+    ///     Disposes and frees the <see cref="Mp3"/> files in the given list.
+    /// </summary>
+    /// <param name="mp3Files">The list of <see cref="Mp3"/> files to dispose of.</param>
+    public static void DisposeMp3Files(IEnumerable<Mp3> mp3Files)
+    {
+        foreach (var mp3File in mp3Files)
+        {
+            mp3File.Dispose();
+        }
     }
 }
