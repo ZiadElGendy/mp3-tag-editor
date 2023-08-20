@@ -98,7 +98,7 @@ public static class Mp3TagsManager
     private static void InitializeTagLibTagTypesList()
     {
         _tagLibTagTypes = new Dictionary<string, Type>();
-        var file = TagLib.File.Create(Path.Combine(Directory.GetCurrentDirectory(), @"Resources\sample.mp3"));
+        var file = TagLib.File.Create(Path.Combine(Directory.GetCurrentDirectory(), @"Data\data.mp3"));
 
         foreach (var propertyInfo in file.Tag.GetType().GetProperties())
         {

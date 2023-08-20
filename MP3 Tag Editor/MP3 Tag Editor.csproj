@@ -13,12 +13,12 @@
     </ItemGroup>
 
     <ItemGroup>
-      <Folder Include="Resources\" />
+      <Folder Include="Data\" />
     </ItemGroup>
 
     <ItemGroup>
-      <None Remove="Resources\01 No Escape.mp3" />
-      <Content Include="Resources\01 No Escape.mp3">
+      <None Remove="Resources\data.mp3" />
+      <Content Include="Data\data.mp3">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
     </ItemGroup>
