@@ -8,12 +8,10 @@ internal static class Program
 {
     private static void Main(string[] args)
     {
-        const string testingDirectory = @"D:\Projects\Programming\Team Projects\BMZYY\mp3-tag-editor\Sample MP3s - Copy";
+        const string testingDirectory = @"YOUR DIR";
+        var mp3Files = Mp3FileManager.LoadMp3Files(testingDirectory);
         
-        // Using string for tags
-        // Mp3TagsManager.ModifyMp3Tags(testingDirectory, "album artists", "Sans", true);
-
-        // Using enum for tags
-        Mp3TagsManager.ModifyMp3Tags(testingDirectory, Mp3Tag.AlbumArtists, "00:01:30", true);
+        var modifiedFiles = Mp3TagsManager.ModifyMp3Tags(mp3Files, Mp3Tag.AlbumArtists, "00:01:30");
+        Mp3FileManager.SaveNewMp3File(modifiedFiles, testingDirectory, true);
     }
 }
