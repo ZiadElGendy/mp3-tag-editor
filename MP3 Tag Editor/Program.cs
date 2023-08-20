@@ -11,9 +11,9 @@ internal static class Program
         const string testingDirectory = @"D:\Projects\Programming\Team Projects\BMZYY\mp3-tag-editor\Sample MP3s - Copy";
         
         // Using string for tags
-        Mp3TagsManager.ModifyMp3Tags(testingDirectory, "album artists", "Sans", true);
+        // Mp3TagsManager.ModifyMp3Tags(testingDirectory, "album artists", "Sans", true);
 
         // Using enum for tags
-        Mp3TagsManager.ModifyMp3Tags(testingDirectory, Mp3Tag.Year, "2002", true);
+        Mp3TagsManager.ModifyMp3Tags(testingDirectory, Mp3Tag.AlbumArtists, "00:01:30", true);
     }
 }

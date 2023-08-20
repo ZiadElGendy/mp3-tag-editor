@@ -12,4 +12,15 @@
         <PackageReference Include="TagLibSharp" Version="2.3.0" />
     </ItemGroup>
 
+    <ItemGroup>
+      <Folder Include="Resources\" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <None Remove="Resources\01 No Escape.mp3" />
+      <Content Include="Resources\01 No Escape.mp3">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
 </Project>

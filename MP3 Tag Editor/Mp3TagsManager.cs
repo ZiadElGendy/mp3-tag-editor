@@ -1,7 +1,9 @@
 using System.Globalization;
+using System.Reflection;
 using System.Text.RegularExpressions;
 using MP3_Tag_Editor.Enums;
 using MP3_Tag_Editor.Exceptions;
+using TagLib;
 
 namespace MP3_Tag_Editor;
 
@@ -10,6 +12,8 @@ namespace MP3_Tag_Editor;
 /// </summary>
 public static class Mp3TagsManager
 {
+    private static Dictionary<string, Type>? _tagLibTagTypes;
+
     /// <summary>
     /// Modifies the specified MP3 tags in the given file or directory.
     /// </summary>
@@ -71,30 +75,41 @@ public static class Mp3TagsManager
     /// <exception cref="InvalidMp3TagValueException">Thrown when the provided value is invalid for the specified MP3 tag.</exception>
     private static void ModifyMp3Tag(TagLib.File file, Mp3Tag mp3Tag, dynamic value)
     {
-        var propertyInfo = typeof(TagLib.Tag).GetProperty(mp3Tag.ToString());
+        if (_tagLibTagTypes is null)
+        {
+            InitializeTagLibTagTypesList();
+        }
+        
+        var propertyInfo = typeof(Tag).GetProperty(mp3Tag.ToString());
 
         if (propertyInfo != null)
         {
             try
             {
-                var tagInstance = propertyInfo.GetValue(file.Tag);
-                var tagType = tagInstance?.GetType();
+                var tagType = _tagLibTagTypes?[mp3Tag.ToString()];
                 try
                 {
-                    object? convertedValue = ConvertValueType(value, tagType);
+                    object? convertedValue = value;
+                    
+                    if (value.GetType() != tagType)
+                    {
+                        convertedValue = ConvertValueType(value, tagType);
+                    }
+                    
                     propertyInfo.SetValue(file.Tag, convertedValue);
                 }
                 catch (InvalidCastException)
                 {
                     if (tagType is { IsArray: true })
                     {
+                        // DOES NOT SUPPORT CONVERTING TO PICTURES
                         propertyInfo.SetValue(file.Tag, new[] { (string)value.ToString() });
                     }
                 }
             }
             catch (Exception e)
             {
-                if (e is System.Reflection.TargetException) throw;
+                if (e is TargetException) throw;
 
                 throw new InvalidMp3TagValueException(value, mp3Tag);
             }
@@ -102,6 +117,19 @@ public static class Mp3TagsManager
         else
         {
             throw new InvalidMp3TagException(file);
+        }
+    }
+
+    private static void InitializeTagLibTagTypesList()
+    {
+        _tagLibTagTypes = new Dictionary<string, Type>();
+        var file = TagLib.File.Create(Path.Combine(Directory.GetCurrentDirectory(), @"Resources\sample.mp3"));
+        
+        foreach (PropertyInfo propertyInfo in file.Tag.GetType().GetProperties())
+        {
+            var name = propertyInfo.Name;
+            var type = propertyInfo.PropertyType;
+            _tagLibTagTypes.Add(name, type);
         }
     }
 
