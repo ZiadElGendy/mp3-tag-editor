@@ -8,7 +8,7 @@ namespace MP3_Tag_Editor;
 /// <summary>
 /// Provides methods for modifying MP3 tags.
 /// </summary>
-public static partial class Mp3TagsManager
+public static class Mp3TagsManager
 {
     /// <summary>
     /// Modifies the specified MP3 tags in the given file or directory.
@@ -28,7 +28,7 @@ public static partial class Mp3TagsManager
         
         // Remove unwanted characters and convert to PascalCase
         var textInfo = CultureInfo.CurrentCulture.TextInfo;
-        var words = MyRegex().Split(stringTag);
+        var words = Regex.Split(stringTag, @"\W+");
 
         for (var i = 0; i < words.Length; i++)
         {
@@ -77,13 +77,19 @@ public static partial class Mp3TagsManager
         {
             try
             {
-                if (mp3Tag is Mp3Tag.Genres or Mp3Tag.AlbumArtists or Mp3Tag.Performers or Mp3Tag.Composers or Mp3Tag.Pictures && value is not Array)
+                var tagInstance = propertyInfo.GetValue(file.Tag);
+                var tagType = tagInstance?.GetType();
+                try
                 {
-                    propertyInfo.SetValue(file.Tag, new[] { (string)value.ToString() });
+                    object? convertedValue = ConvertValueType(value, tagType);
+                    propertyInfo.SetValue(file.Tag, convertedValue);
                 }
-                else
+                catch (InvalidCastException)
                 {
-                    propertyInfo.SetValue(file.Tag, value);
+                    if (tagType is { IsArray: true })
+                    {
+                        propertyInfo.SetValue(file.Tag, new[] { (string)value.ToString() });
+                    }
                 }
             }
             catch (Exception e)
@@ -99,6 +105,5 @@ public static partial class Mp3TagsManager
         }
     }
 
-    [GeneratedRegex("\\W+")]
-    private static partial Regex MyRegex();
+    private static dynamic ConvertValueType(dynamic value, dynamic newType) => Convert.ChangeType(value, newType.GetType());
 }

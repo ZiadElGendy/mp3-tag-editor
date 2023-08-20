@@ -12,8 +12,8 @@ internal static class Program
         
         // Using string for tags
         Mp3TagsManager.ModifyMp3Tags(testingDirectory, "album artists", "Sans", true);
-        
+
         // Using enum for tags
-        Mp3TagsManager.ModifyMp3Tags(testingDirectory, Mp3Tag.Title, "Megalovania", true);
+        Mp3TagsManager.ModifyMp3Tags(testingDirectory, Mp3Tag.Year, "2002", true);
     }
 }
