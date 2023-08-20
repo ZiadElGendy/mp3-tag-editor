@@ -17,19 +17,14 @@ public static class Mp3TagsManager
     /// <summary>
     /// Modifies the specified MP3 tags in the given file or directory.
     /// </summary>
-    /// <param name="path">The path to the MP3 file or directory.</param>
+    /// <param name="files">The list of MP3 files to modify.</param>
     /// <param name="stringTag">The string representation of the MP3 tag to modify.</param>
     /// <param name="value">The new value to assign to the MP3 tag.</param>
-    /// <param name="overwrite">Whether to overwrite existing tags if present.</param>
     /// <exception cref="InvalidMp3TagException">Thrown when the specified MP3 tag does not exist.</exception>
     /// <exception cref="InvalidMp3TagValueException">Thrown when the provided value is invalid for the specified MP3 tag.</exception>
-    public static void ModifyMp3Tags(string path, string stringTag, dynamic value, bool overwrite = false)
+    /// <returns>A list of modified mp3 files.</returns>
+    public static IEnumerable<TagLib.File> ModifyMp3Tags(IEnumerable<TagLib.File> files, string stringTag, dynamic value)
     {
-        if (string.IsNullOrEmpty(stringTag))
-        {
-            return;
-        }
-        
         // Remove unwanted characters and convert to PascalCase
         var textInfo = CultureInfo.CurrentCulture.TextInfo;
         var words = Regex.Split(stringTag, @"\W+");
@@ -43,25 +38,24 @@ public static class Mp3TagsManager
         stringTag = string.Join("", words);
         Enum.TryParse(stringTag, out Mp3Tag tag);
         
-        
-        ModifyMp3Tags(path, tag, value, overwrite);
+        return ModifyMp3Tags(files, tag, value);
     }
 
 
     /// <summary>
     /// Modifies the specified MP3 tags in the given file or directory.
     /// </summary>
-    /// <param name="path">The path to the MP3 file or directory.</param>
+    /// <param name="files">The list of MP3 files to modify.</param>
     /// <param name="tag">The MP3 tag to modify.</param>
     /// <param name="value">The new value to assign to the MP3 tag.</param>
-    /// <param name="overwrite">Whether to overwrite existing tags if present.</param>
     /// <exception cref="InvalidMp3TagException">Thrown when the specified MP3 tag does not exist.</exception>
     /// <exception cref="InvalidMp3TagValueException">Thrown when the provided value is invalid for the specified MP3 tag.</exception>
-    public static void ModifyMp3Tags(string path, Mp3Tag tag, dynamic value, bool overwrite = false)
+    /// <returns>A list of modified mp3 files.</returns>
+    public static IEnumerable<TagLib.File> ModifyMp3Tags(IEnumerable<TagLib.File> files, Mp3Tag tag, dynamic value)
     {
-        var files = Mp3FileManager.LoadMp3Files(path).ToList();
-        files.ForEach(file => ModifyMp3Tag(file, tag, value));
-        Mp3FileManager.SaveNewMp3File(files, Path.GetDirectoryName(path) ?? throw new InvalidMp3PathException(path), overwrite);
+        var mp3Files = files.ToList();
+        mp3Files.ForEach(file => ModifyMp3Tag(file, tag, value));
+        return mp3Files;
     }
 
     /// <summary>
@@ -79,59 +73,94 @@ public static class Mp3TagsManager
         {
             InitializeTagLibTagTypesList();
         }
-        
+
         var propertyInfo = typeof(Tag).GetProperty(mp3Tag.ToString());
 
-        if (propertyInfo != null)
-        {
-            try
-            {
-                var tagType = _tagLibTagTypes?[mp3Tag.ToString()];
-                try
-                {
-                    object? convertedValue = value;
-                    
-                    if (value.GetType() != tagType)
-                    {
-                        convertedValue = ConvertValueType(value, tagType);
-                    }
-                    
-                    propertyInfo.SetValue(file.Tag, convertedValue);
-                }
-                catch (InvalidCastException)
-                {
-                    if (tagType is { IsArray: true })
-                    {
-                        // DOES NOT SUPPORT CONVERTING TO PICTURES
-                        propertyInfo.SetValue(file.Tag, new[] { (string)value.ToString() });
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                if (e is TargetException) throw;
-
-                throw new InvalidMp3TagValueException(value, mp3Tag);
-            }
-        }
-        else
+        if (propertyInfo is null)
         {
             throw new InvalidMp3TagException(file);
         }
+
+        try
+        {
+            var tagType = _tagLibTagTypes?[mp3Tag.ToString()];
+            ModifyTagProperty(file, propertyInfo, tagType, value);
+        }
+        catch (Exception e)
+        {
+            HandlePropertyModificationException(e, mp3Tag, value);
+        }
     }
 
+    /// <summary>
+    /// Initializes the dictionary of tag property names and their associated types.
+    /// </summary>
     private static void InitializeTagLibTagTypesList()
     {
         _tagLibTagTypes = new Dictionary<string, Type>();
         var file = TagLib.File.Create(Path.Combine(Directory.GetCurrentDirectory(), @"Resources\sample.mp3"));
-        
-        foreach (PropertyInfo propertyInfo in file.Tag.GetType().GetProperties())
+
+        foreach (var propertyInfo in file.Tag.GetType().GetProperties())
         {
-            var name = propertyInfo.Name;
-            var type = propertyInfo.PropertyType;
-            _tagLibTagTypes.Add(name, type);
+            _tagLibTagTypes.Add(propertyInfo.Name, propertyInfo.PropertyType);
+        }
+    }
+    
+    /// <summary>
+    /// Modifies a specific MP3 tag property of a TagLib.File.
+    /// </summary>
+    /// <param name="file">The TagLib.File object to modify.</param>
+    /// <param name="propertyInfo">The property information representing the MP3 tag.</param>
+    /// <param name="tagType">The expected type of the MP3 tag property.</param>
+    /// <param name="value">The new value to assign to the MP3 tag property.</param>
+    private static void ModifyTagProperty(TagLib.File file, PropertyInfo propertyInfo, Type? tagType, dynamic value)
+    {
+        if (tagType is null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (value.GetType() != tagType)
+            {
+                value = Convert.ChangeType(value, tagType);
+            }
+            propertyInfo.SetValue(file.Tag, value);
+        }
+        catch (InvalidCastException)
+        {
+            HandleInvalidCastException(file, propertyInfo, value);
         }
     }
 
-    private static dynamic ConvertValueType(dynamic value, dynamic newType) => Convert.ChangeType(value, newType.GetType());
+    /// <summary>
+    /// Handles an InvalidCastException by modifying the MP3 tag property if it's an array type and the value is not an array.
+    /// </summary>
+    /// <param name="file">The TagLib.File object to modify.</param>
+    /// <param name="propertyInfo">The property information representing the MP3 tag.</param>
+    /// <param name="value">The value that was being assigned to the MP3 tag property.</param>
+    private static void HandleInvalidCastException(TagLib.File file, PropertyInfo propertyInfo, dynamic value)
+    {
+        if (propertyInfo.PropertyType.IsArray && value is not Array)
+        {
+            propertyInfo.SetValue(file.Tag, new[] { (string)value.ToString() });
+        }
+    }
+    
+    /// <summary>
+    /// Handles exceptions that occur during property modification.
+    /// </summary>
+    /// <param name="e">The exception that occurred during property modification.</param>
+    /// <param name="mp3Tag">The MP3 tag that was being modified.</param>
+    /// <param name="value">The value that was being assigned to the MP3 tag.</param>
+    private static void HandlePropertyModificationException(Exception e, Mp3Tag mp3Tag, dynamic value)
+    {
+        if (e is TargetException)
+        {
+            throw e;
+        }
+
+        throw new InvalidMp3TagValueException(value, mp3Tag, e);
+    }
 }
