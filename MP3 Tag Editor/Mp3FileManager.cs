@@ -85,14 +85,14 @@ public static class Mp3FileManager
     }
 
     //FIXME: Make this not stupid and backwards
-    public static void SaveNewMp3File(IEnumerable<TagLib.File> mp3Files, string directoryFilePath)
+    public static void SaveNewMp3File(IEnumerable<TagLib.File> mp3Files, string directoryFilePath, bool overwrite = false)
     {
         foreach (var mp3File in mp3Files)
         {
             var fileName = mp3File.Name;
             var newFileName = Path.GetFileNameWithoutExtension(fileName) + " - Original" + Path.GetExtension(fileName);
 
-            File.Copy(Path.Combine(directoryFilePath,fileName),Path.Combine(directoryFilePath,newFileName) , false);
+            File.Copy(Path.Combine(directoryFilePath,fileName),Path.Combine(directoryFilePath,newFileName) , overwrite);
             mp3File.Save();
         }
     }
