@@ -156,8 +156,6 @@ public static class Mp3FileManager
         }
     }
 
-
-
     public static void ReadWriteTest()
     {
         var mp3Files = LoadMp3Files(Mp3TestingDirectory);
