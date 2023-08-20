@@ -165,15 +165,21 @@ public static class Mp3FileManager
         foreach (var mp3File in mp3Files)
         {
             Console.WriteLine(mp3File.Tag.Title);
+            mp3File.Tag.Title = "Among Us - Main Theme (Elsa and Spider-man Cover)";
         }
 
+        SaveMp3Files(mp3Files);
         DisposeMp3Files(mp3Files);
 
         mp3Files = LoadNewMp3Files(Mp3TestingDirectory);
+
         foreach (var mp3File in mp3Files)
         {
             Console.WriteLine(mp3File.Tag.Title);
+            mp3File.Tag.Title = "Among Us - Main Theme (GIGACHAD Phonk Mix 2022)";
         }
+
+        SaveMp3Files(mp3Files);
     }
 
 }
