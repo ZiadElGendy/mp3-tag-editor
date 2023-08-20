@@ -12,6 +12,6 @@ internal static class Program
         var mp3Files = Mp3FileManager.LoadMp3Files(testingDirectory);
         
         var modifiedFiles = Mp3TagsManager.ModifyMp3Tags(mp3Files, Mp3Tag.AlbumArtists, "00:01:30");
-        Mp3FileManager.SaveNewMp3File(modifiedFiles, testingDirectory, true);
+        Mp3FileManager.SaveMp3Files(modifiedFiles);
     }
 }
