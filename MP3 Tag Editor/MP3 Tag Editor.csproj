@@ -9,8 +9,7 @@
     </PropertyGroup>
 
     <ItemGroup>
-        <PackageReference Include="ID3" Version="0.6.0"/>
+      <PackageReference Include="TagLibSharp" Version="2.3.0" />
     </ItemGroup>
-
 
 </Project>
