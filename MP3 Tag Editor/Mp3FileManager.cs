@@ -28,6 +28,60 @@ public static class Mp3FileManager
     }
 
     /// <summary>
+    ///     Loads new MP3 files from the given path.
+    ///     If the path is a single file, it will copy and load the new MP3 file.
+    ///     If the path is a directory, it will copy and load all new MP3 files in the directory.
+    /// </summary>
+    /// <param name="path">The path of the file or directory.</param>
+    /// <returns>A collection of loaded <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 files.</returns>
+    public static IEnumerable<TagLib.File> LoadNewMp3Files(string path)
+    {
+        if (File.Exists(path))
+        {
+            var newPath = CopyMp3File(path);
+            return new List<TagLib.File> { LoadMp3FileFromPath(newPath) };
+        }
+
+        if (Directory.Exists(path))
+        {
+            CopyMp3FilesInDirectory(path);
+            return LoadNewMp3FilesFromDirectory(path);
+        }
+        //The design for File vs Directory are different because it was simpler that way
+        //I chose to repeat some code rather than have one function do two things depending on a boolean input
+
+        throw new InvalidMp3PathException(path);
+    }
+
+    /// <summary>
+    ///     Makes a copy of the MP3 file in the given path.
+    /// </summary>
+    /// <param name="path">The path of the file or directory. </param>
+    /// <returns>The path of the MP3 file copy,</returns>
+    private static string CopyMp3File(string path)
+    {
+        var newFileName = Path.GetFileNameWithoutExtension(path) + " - Copy" + Path.GetExtension(path);
+        File.Copy(path, newFileName, true);
+
+        return newFileName;
+    }
+
+    /// <summary>
+    ///     Makes a copy of the MP3 files in the given directory.
+    /// </summary>
+    /// <param name="path">The path of the file or directory.</param>
+    private static void CopyMp3FilesInDirectory(string path)
+    {
+        var filesPaths = Directory.EnumerateFiles(path, "*.mp3");
+
+        foreach (var filePath in filesPaths)
+        {
+            var newFileName = path + @"\" + Path.GetFileNameWithoutExtension(filePath) + " - Copy" + Path.GetExtension(filePath);
+            File.Copy(filePath, newFileName, true);
+        }
+    }
+
+    /// <summary>
     ///     Loads an MP3 file from the specified path.
     /// </summary>
     /// <param name="filePath">The path of the MP3 file.</param>
@@ -65,6 +119,18 @@ public static class Mp3FileManager
     }
 
     /// <summary>
+    ///     Loads copied MP3 files from a directory.
+    /// </summary>
+    /// <param name="directoryPath">The path of the directory containing MP3 files.</param>
+    /// <returns>A collection of <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 files.</returns>
+    private static IEnumerable<TagLib.File> LoadNewMp3FilesFromDirectory(string directoryPath)
+    {
+        var filesPaths = Directory.EnumerateFiles(directoryPath, "* - Copy.mp3");
+
+        return filesPaths.Select(LoadMp3FileFromPath).ToList();
+    }
+
+    /// <summary>
     ///     Disposes and frees the MP3 files in the given list.
     /// </summary>
     /// <param name="mp3Files">The list of <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 files to dispose of.</param>
@@ -76,7 +142,13 @@ public static class Mp3FileManager
         }
     }
 
-    public static void SaveOverwriteMp3File(IEnumerable<TagLib.File> mp3Files)
+    /// <summary>
+    /// Saves changes made to the given MP3 files.
+    /// </summary>
+    /// <param name="mp3Files">
+    /// The collection of <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 files to save.
+    /// </param>
+    public static void SaveMp3Files(IEnumerable<TagLib.File> mp3Files)
     {
         foreach (var mp3File in mp3Files)
         {
@@ -84,18 +156,6 @@ public static class Mp3FileManager
         }
     }
 
-    //FIXME: Make this not stupid and backwards
-    public static void SaveNewMp3File(IEnumerable<TagLib.File> mp3Files, string directoryFilePath)
-    {
-        foreach (var mp3File in mp3Files)
-        {
-            var fileName = mp3File.Name;
-            var newFileName = Path.GetFileNameWithoutExtension(fileName) + " - Original" + Path.GetExtension(fileName);
-
-            File.Copy(Path.Combine(directoryFilePath,fileName),Path.Combine(directoryFilePath,newFileName) , false);
-            mp3File.Save();
-        }
-    }
 
 
     public static void ReadWriteTest()
@@ -109,8 +169,11 @@ public static class Mp3FileManager
 
         DisposeMp3Files(mp3Files);
 
-        SaveNewMp3File(mp3Files, Mp3TestingDirectory);
-
+        mp3Files = LoadNewMp3Files(Mp3TestingDirectory);
+        foreach (var mp3File in mp3Files)
+        {
+            Console.WriteLine(mp3File.Tag.Title);
+        }
     }
 
 }
