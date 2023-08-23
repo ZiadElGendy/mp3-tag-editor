@@ -15,7 +15,7 @@ public static class Ui
         Console.WriteLine("Welcome to MP3 Tag Editor\n\n" +
             "Enter h for help\n" +
             "Enter e to enter MP3 modification\n" +
-            "Enter x to exit program");
+            "Enter x to exit program\n");
 
         var input = Console.ReadLine();
         return input;
@@ -46,19 +46,46 @@ public static class Ui
 
     public static void ModifyMp3Menu()
     {
-        Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify");
+        Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n");
+        var path = Console.ReadLine();
+        var overwriteSelection = OverwriteMenu();
+        List<TagLib.File> mp3s;
+        if (overwriteSelection)
+            mp3s = Mp3FileManager.LoadMp3Files(path).ToList();
+        else
+            mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
+        if (mp3s.Count == 1)//there's gotta be a way to access the only element in a list
+        {
+            Console.WriteLine(mp3s[0].name); //same as the comment down there vvv
+            ViewPropertiesMenu(mp3s[0]);
+        }
+        else
+        {
+            for mp3 in mp3s {
+                Console.WriteLine(mp3.name); //the library doesn't work for me i literally don't know what properties they have
+                ViewPropertiesMenu(mp3)
+            }
+        }
+
+
+
     }
 
     public static bool OverwriteMenu()
     {
-        Console.WriteLine("Do you want to overwrite the original files? (y/n)");
+        Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
         var input = Console.ReadLine();
-        if(input == "y")
+        if(input.ToLower() == "y")
         {
             return true;
         }
 
         return false;
+    }
+
+    public static void ViewPropertiesMenu(TagLib.File mp3)
+    {
+        // print properties of mp3 file
     }
 
 }
