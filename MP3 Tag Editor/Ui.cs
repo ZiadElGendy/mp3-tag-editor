@@ -24,7 +24,8 @@ public static class Ui
     public static void HelpMenu()
     {
         Console.WriteLine("This is MP3 Tag Editor, a program to modify MP3 file tags.\n" +
-                          "Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n" +
+                          "Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify,\n" +
+                          "When entering a path to a directory, changes are made in bulk.\n"+
                           "The accepted fields to change are:\n");
 
         foreach (Enum tag in Enum.GetValues(typeof(Mp3Tag)))
@@ -34,13 +35,9 @@ public static class Ui
 
     }
 
-    public static void ModifyMp3(String filePath)
+    public static void ModifyMp3Menu()
     {
-
-
-        /* 
-         * Mp3FileManager.LoadMp3Files(filePath);
-         */
+        Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify");
     }
 
 }
