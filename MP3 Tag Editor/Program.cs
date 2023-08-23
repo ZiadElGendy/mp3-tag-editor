@@ -7,14 +7,34 @@ internal static class Program
     {
         while (!_exit)
         {
-            var input = Ui.MainMenu();
-            switch (input)
+            var methodSelection = Ui.MainMenu();
+            switch (methodSelection)
             {
                 case "h":
                     Ui.HelpMenu();
                     break;
                 case "e":
                     Ui.ModifyMp3Menu();
+                    var path = Console.ReadLine();
+
+                    var overwriteSelection = Ui.OverwriteMenu();
+                    List<TagLib.File> mp3s;
+                    if (overwriteSelection)
+                        mp3s = Mp3FileManager.LoadMp3Files(path).ToList();
+                    else
+                        mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
+
+                    if (mp3s.Count == 1)
+                    {
+
+                    }
+                    else
+                    {
+
+                    }
+
+
+
                     break;
                 case "x":
                     _exit = true;
