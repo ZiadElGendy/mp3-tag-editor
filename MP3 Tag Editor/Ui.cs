@@ -11,11 +11,11 @@ public static class Ui
      */
     public static string MainMenu()
     {
-        Console.WriteLine("Welcome to MP3 Tag Editor\n" +
+        Console.Clear();
+        Console.WriteLine("Welcome to MP3 Tag Editor\n\n" +
             "Enter h for help\n" +
             "Enter e to enter MP3 modification\n" +
-            "Enter x to exit program\n" +
-            "Enter your choice:");
+            "Enter x to exit program");
 
         var input = Console.ReadLine();
         return input;
@@ -25,12 +25,21 @@ public static class Ui
     {
         Console.WriteLine("This is MP3 Tag Editor, a program to modify MP3 file tags.\n" +
                           "Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify,\n" +
-                          "When entering a path to a directory, changes are made in bulk.\n"+
-                          "The accepted fields to change are:\n");
+                          "When entering a path to a directory, changes are made in bulk.\n");
 
-        foreach (Enum tag in Enum.GetValues(typeof(Mp3Tag)))
+        Console.WriteLine("Do you want to view supported fields? (y/n)");
+        var input = Console.ReadLine();
+
+        if (input == "y")
         {
-            Console.WriteLine(tag);
+            Console.WriteLine("The accepted fields to change are:\n");
+            foreach (Enum tag in Enum.GetValues(typeof(Mp3Tag)))
+            {
+                Console.WriteLine(tag);
+            }
+
+            Console.WriteLine("\nPress any key to continue");
+            Console.ReadLine();
         }
 
     }
@@ -38,6 +47,18 @@ public static class Ui
     public static void ModifyMp3Menu()
     {
         Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify");
+    }
+
+    public static bool OverwriteMenu()
+    {
+        Console.WriteLine("Do you want to overwrite the original files? (y/n)");
+        var input = Console.ReadLine();
+        if(input == "y")
+        {
+            return true;
+        }
+
+        return false;
     }
 
 }
