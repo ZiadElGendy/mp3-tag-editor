@@ -87,8 +87,17 @@ public static class Ui
             foreach (TagLib.File mp3 in mp3s)
             {
                 Console.WriteLine(mp3.Name);
-                Console.WriteLine("\n " + mp3.Properties.ToString());
+               
             };
+            Console.WriteLine("\nDo you want to display file properties? (y/n)");
+            var decision = Console.ReadLine();
+            if (decision.ToLower() == "y")
+            {
+                Console.WriteLine("\n Enter file name: ");
+                var filename = Console.ReadLine();
+                Console.WriteLine("\n " + mp3s.Find(item => item.Name == filename).Properties.ToString());
+            }
+            
         }
 
     }
