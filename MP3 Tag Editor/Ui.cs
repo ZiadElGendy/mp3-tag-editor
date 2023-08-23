@@ -1,4 +1,5 @@
 ﻿using MP3_Tag_Editor.Enums;
+using TagLib;
 
 namespace MP3_Tag_Editor;
 
@@ -54,18 +55,9 @@ public static class Ui
             mp3s = Mp3FileManager.LoadMp3Files(path).ToList();
         else
             mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
-        if (mp3s.Count == 1)//there's gotta be a way to access the only element in a list
-        {
-            Console.WriteLine(mp3s[0].name); //same as the comment down there vvv
-            ViewPropertiesMenu(mp3s[0]);
-        }
-        else
-        {
-            for mp3 in mp3s {
-                Console.WriteLine(mp3.name); //the library doesn't work for me i literally don't know what properties they have
-                ViewPropertiesMenu(mp3)
-            }
-        }
+        ViewPropertiesMenu(mp3s);
+
+
 
 
 
@@ -83,9 +75,27 @@ public static class Ui
         return false;
     }
 
-    public static void ViewPropertiesMenu(TagLib.File mp3)
+    public static void ViewPropertiesMenu(List<TagLib.File> mp3s)
     {
-        // print properties of mp3 file
+        if (mp3s.Count == 1)//there's gotta be a way to access the only element in a list
+        {
+            Console.WriteLine(mp3s[0].Name);
+            Console.WriteLine("\n " + mp3s[0].Properties.ToString());
+        }
+        else
+        {
+            foreach (TagLib.File mp3 in mp3s)
+            {
+                Console.WriteLine(mp3.Name);
+                Console.WriteLine("\n " + mp3.Properties.ToString());
+            };
+        }
+
+    }
+
+    public static void ModiftyTagMenu(List<TagLib.File> mp3s)
+    {
+
     }
 
 }
