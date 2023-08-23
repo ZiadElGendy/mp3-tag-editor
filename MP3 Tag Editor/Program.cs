@@ -14,25 +14,7 @@ internal static class Program
                     Ui.HelpMenu();
                     break;
                 case "e":
-                    var path = Ui.ModifyMp3Menu();
-                    var overwriteSelection = Ui.OverwriteMenu();
-                    List<TagLib.File> mp3s;
-                    if (overwriteSelection)
-                        mp3s = Mp3FileManager.LoadMp3Files(path).ToList();
-                    else
-                        mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
-
-                    if (mp3s.Count == 1)
-                    {
-
-                    }
-                    else
-                    {
-
-                    }
-
-
-
+                    Ui.MainMenu();
                     break;
                 case "x":
                     _exit = true;

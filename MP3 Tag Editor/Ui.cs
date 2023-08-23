@@ -56,10 +56,8 @@ public static class Ui
         else
             mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
         ViewPropertiesMenu(mp3s);
-
-
-
-
+        ModiftyTagMenu(mp3s);
+        Console.WriteLine("\n Modification complete.");
 
     }
 
@@ -104,7 +102,11 @@ public static class Ui
 
     public static void ModiftyTagMenu(List<TagLib.File> mp3s)
     {
-
+        Console.WriteLine("\nEnter which tag you wish to modify: ");
+        var tag = Console.ReadLine();
+        Console.WriteLine("\n Enter the value you want: ");
+        var value = Console.ReadLine();
+        Mp3TagsManager.ModifyMp3Tags(mp3s, tag, value);
     }
 
 }
