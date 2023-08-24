@@ -1,5 +1,8 @@
-﻿using MP3_Tag_Editor.Enums;
+﻿using System.ComponentModel;
+using System.Reflection;
+using MP3_Tag_Editor.Enums;
 using TagLib;
+using File = TagLib.File;
 
 namespace MP3_Tag_Editor;
 
@@ -47,17 +50,25 @@ public static class Ui
 
     public static void ModifyMp3Menu()
     {
+        Console.Clear();
         Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n");
         var path = Console.ReadLine();
+
         var overwriteSelection = OverwriteMenu();
         List<TagLib.File> mp3s;
         if (overwriteSelection)
             mp3s = Mp3FileManager.LoadMp3Files(path).ToList();
         else
             mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
-        ViewPropertiesMenu(mp3s);
-        ModiftyTagMenu(mp3s);
-        Console.WriteLine("\n Modification complete.");
+
+        //TODO: Add this back after fixing
+        //ViewPropertiesMenu(mp3s);
+
+        ModifyTagMenu(mp3s);
+
+        Mp3FileManager.SaveMp3Files(mp3s);
+        Console.WriteLine("\nModification complete.");
+        Thread.Sleep(1500);
 
     }
 
@@ -69,44 +80,81 @@ public static class Ui
         {
             return true;
         }
-
-        return false;
-    }
-
-    public static void ViewPropertiesMenu(List<TagLib.File> mp3s)
-    {
-        if (mp3s.Count == 1)//there's gotta be a way to access the only element in a list
+        else if(input.ToLower() == "n")
         {
-            Console.WriteLine(mp3s[0].Name);
-            Console.WriteLine("\n " + mp3s[0].Properties.ToString());
+            return false;
         }
         else
         {
-            foreach (TagLib.File mp3 in mp3s)
-            {
-                Console.WriteLine(mp3.Name);
-               
-            };
-            Console.WriteLine("\nDo you want to display file properties? (y/n)");
-            var decision = Console.ReadLine();
-            if (decision.ToLower() == "y")
-            {
-                Console.WriteLine("\n Enter file name: ");
-                var filename = Console.ReadLine();
-                Console.WriteLine("\n " + mp3s.Find(item => item.Name == filename).Properties.ToString());
-            }
-            
+            Console.WriteLine("Invalid input!");
+            return OverwriteMenu();
         }
-
     }
 
-    public static void ModiftyTagMenu(List<TagLib.File> mp3s)
+    //FIXME: This should take IEnumerable, and not List
+    public static void ViewPropertiesMenu(List<File> mp3s)
+    {
+        if (mp3s.Count == 1)
+        {
+            ViewFilePropertiesMenu(mp3s[0]);
+        }
+        else
+        {
+            ViewDirectoryPropertiesMenu(mp3s);
+        }
+    }
+
+    public static void ViewFilePropertiesMenu(TagLib.File mp3)
+    {
+        //FIXME: This line simply does not work. I hate it here
+        PropertyInfo[] properties = mp3.GetTag(TagTypes.Id3v1).GetType().GetProperties();
+
+        foreach (PropertyInfo p in properties)
+        {
+            System.Console.WriteLine(p.Name + " : " + p.GetValue(mp3));
+        }
+    }
+
+    //FIXME: This should take IEnumerable, and not List
+    private static void ViewDirectoryPropertiesMenu(List<File> mp3s)
+    {
+        foreach (var mp3 in mp3s)
+        {
+            Console.WriteLine((mp3s.IndexOf(mp3)+1) + ") " + mp3.Name);
+        }
+
+        Console.WriteLine("\nDo you want to display file properties? (y/n)");
+        var decision = Console.ReadLine();
+        if (decision.ToLower() == "y")
+        {
+            Console.WriteLine("\n Select file number: ");
+            var fileSelection = Console.ReadLine();
+            var fileIndex = int.TryParse(fileSelection, out var index) ? index - 1 : -1;
+
+            if (fileIndex == -1)
+            {
+                throw new InvalidCastException("Invalid input");
+            }
+
+            ViewFilePropertiesMenu(mp3s[fileIndex]);
+        }
+    }
+
+    public static void ModifyTagMenu(List<TagLib.File> mp3s)
     {
         Console.WriteLine("\nEnter which tag you wish to modify: ");
         var tag = Console.ReadLine();
-        Console.WriteLine("\n Enter the value you want: ");
+        Console.WriteLine("\nEnter the value you want: ");
         var value = Console.ReadLine();
-        Mp3TagsManager.ModifyMp3Tags(mp3s, tag, value);
+        try
+        {
+            Mp3TagsManager.ModifyMp3Tags(mp3s, tag, value);
+        }
+        catch(Exception e)
+        {
+            Console.WriteLine("Invalid input!");
+            ModifyTagMenu(mp3s);
+        }
     }
 
 }
