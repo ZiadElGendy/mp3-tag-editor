@@ -14,7 +14,7 @@ internal static class Program
                     Ui.HelpMenu();
                     break;
                 case "e":
-                    Ui.MainMenu();
+                    Ui.ModifyMp3Menu();
                     break;
                 case "x":
                     _exit = true;
