@@ -1,6 +1,7 @@
 using System.Globalization;
 using System.Reflection;
 using System.Text.RegularExpressions;
+using System.Xml;
 using MP3_Tag_Editor.Enums;
 using MP3_Tag_Editor.Exceptions;
 using TagLib;
@@ -94,7 +95,8 @@ public static class Mp3TagsManager
     }
 
     /// <summary>
-    /// Modifies the specified MP3 tags using a CSV file.
+    /// Modifies the specified MP3 tags using a CSV file based on mp3tag's exported CSV format..
+    /// It is assumed the MP3 files are in the same order as the CSV format.
     /// </summary>
     /// <param name="files">The list of MP3 files to modify.</param>
     /// <param name="sourceCsvs">The list of CSV files to use.</param>
@@ -118,6 +120,28 @@ public static class Mp3TagsManager
         ModifyMp3Tag(file, Mp3Tag.Album, sourceCsv[2]);
         //ModifyMp3Tag(file, Mp3Tag.Track, sourceCsv[3]);
         ModifyMp3Tag(file, Mp3Tag.Year, sourceCsv[4]);
+    }
+
+    /// <summary>
+    /// Modifies the specified MP3 tags using a an XML.
+    /// It is assumed the MP3 files are in the same order as the XML format.
+    /// </summary>
+    /// <param name="files">The list of MP3 files to modify.</param>
+    /// <param name="sourceXml">The XML file to use.</param>
+    public static void ModifyMp3TagsWithXml(IEnumerable<TagLib.File> files, XmlDocument sourceXml)
+    {
+        var mp3Files = files.ToArray();
+        var xmlRoot = sourceXml.DocumentElement;
+        var i = 0;
+
+        foreach (XmlNode track in xmlRoot.ChildNodes)
+        {
+            foreach (XmlNode property in track.ChildNodes)
+            {
+                ModifyMp3Tags(new TagLib.File[] {mp3Files[i]}, property.Name, property.InnerText);
+            }
+            i++;
+        }
     }
 
     /// <summary>
