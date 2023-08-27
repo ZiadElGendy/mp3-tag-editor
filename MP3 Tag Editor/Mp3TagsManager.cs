@@ -14,6 +14,8 @@ public static class Mp3TagsManager
 {
     private static Dictionary<string, Type>? _tagLibTagTypes;
 
+    //FIXME: Modifying the track number is not working
+
     /// <summary>
     /// Modifies the specified MP3 tags in the given file or directory.
     /// </summary>
@@ -40,7 +42,6 @@ public static class Mp3TagsManager
         
         return ModifyMp3Tags(files, tag, value);
     }
-
 
     /// <summary>
     /// Modifies the specified MP3 tags in the given file or directory.
@@ -90,6 +91,33 @@ public static class Mp3TagsManager
         {
             HandlePropertyModificationException(e, mp3Tag, value);
         }
+    }
+
+    /// <summary>
+    /// Modifies the specified MP3 tags using a CSV file.
+    /// </summary>
+    /// <param name="files">The list of MP3 files to modify.</param>
+    /// <param name="sourceCsvs">The list of CSV files to use.</param>
+    public static void ModifyMp3TagsWithCsv(IEnumerable<TagLib.File> files, IEnumerable<string[]> sourceCsvs)
+    {
+        var mp3Files = files.ToList();
+        var mp3Csvs = sourceCsvs.ToArray();
+        var i = 0;
+        mp3Files.ForEach(file => ModifyMp3TagWithCsv(file, mp3Csvs[i++]));
+    }
+
+    /// <summary>
+    /// Assigns the values from a CSV file to the MP3 tags of a TagLib.File based on mp3tag's exported CSV format.
+    /// </summary>
+    /// <param name="file">The TagLib.File object to modify.</param>
+    /// <param name="sourceCsv">The CSV file to use.</param>
+    private static void ModifyMp3TagWithCsv(TagLib.File file, string[] sourceCsv)
+    {
+        ModifyMp3Tag(file, Mp3Tag.Title, sourceCsv[0]);
+        ModifyMp3Tag(file, Mp3Tag.Artists, sourceCsv[1]);
+        ModifyMp3Tag(file, Mp3Tag.Album, sourceCsv[2]);
+        //ModifyMp3Tag(file, Mp3Tag.Track, sourceCsv[3]);
+        ModifyMp3Tag(file, Mp3Tag.Year, sourceCsv[4]);
     }
 
     /// <summary>
