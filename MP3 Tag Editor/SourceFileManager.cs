@@ -39,7 +39,7 @@ public static class SourceFileManager
     /// Loads a CSV file of the metadata of a collection of MP3 files.
     /// </summary>
     /// <param name="filePath">The path of the file.</param>
-    /// <returns>A 2D array representing fields for each MP3 File in the collection</returns>
+    /// <returns>A tuple containing a collection of properties and a 2D array of id information per song respectively</returns>
     /// <exception cref="InvalidSourcePathException">Thrown when the specified CSV file does not exist.</exception>
     private static (IEnumerable<string>, IEnumerable<string[]>) LoadCsvImportFile(string filePath)
     {
@@ -48,13 +48,13 @@ public static class SourceFileManager
         {
             csvParser.SetDelimiters(";");
 
-            var properties = csvParser.ReadFields();
-            var trackInfo = new List<string[]>();
+            var idProperties = csvParser.ReadFields();
+            var idValues = new List<string[]>();
             while (!csvParser.EndOfData)
             {
-                trackInfo.Add(csvParser.ReadFields());
+                idValues.Add(csvParser.ReadFields()?? new string[0]);
             }
-            return (properties, trackInfo);
+            return (idProperties, idValues);
         }
     }
 
@@ -69,12 +69,10 @@ public static class SourceFileManager
         xmlFile.Load(filePath);
         return xmlFile;
     }
-
-    public static void ModifyFromCsvTest()
+    private static void ModifyFromCsvTest()
     {
-        var mp3DirTestPath = "D:\\Documents\\Programming\\Group Project\\2023\\ZMBY 3\\mp3-tag-editor\\Sample MP3s";
-        var csvTestPath =
-            "D:\\Documents\\Programming\\Group Project\\2023\\ZMBY 3\\mp3-tag-editor\\Sample MP3s\\mp3tagsample.csv";
+        var mp3DirTestPath = "ADD DIRPATH HERE";
+        var csvTestPath = "ADD FILEPATH HERE";
 
         var mp3Files = Mp3FileManager.LoadMp3Files(mp3DirTestPath);
         var csvFile = LoadImportFile(csvTestPath);

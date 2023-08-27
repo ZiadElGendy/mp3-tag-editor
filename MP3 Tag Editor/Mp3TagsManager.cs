@@ -95,29 +95,31 @@ public static class Mp3TagsManager
     }
     
     /// <summary>
-    /// Modifies the specified MP3 tags using a CSV file based on mp3tag's exported CSV format..
+    /// Modifies the specified MP3 tags using a CSV file.
     /// It is assumed the MP3 files are in the same order as the CSV format.
     /// </summary>
     /// <param name="files">The list of MP3 files to modify.</param>
-    /// <param name="sourceCsvs">The list of CSV files to use.</param>
-    public static void ModifyMp3TagsWithCsv(IEnumerable<TagLib.File> files,IEnumerable<string> sourceProperties,IEnumerable<string[]> sourceInfo)
+    /// <param name="sourceProperties">The properties to modify as given by the CSV file</param>
+    /// <param name="sourceValues">A 2D array consisting of an array of id values per song as given by the CSV file</param>
+    public static void ModifyMp3TagsWithCsv(IEnumerable<TagLib.File> files,IEnumerable<string> sourceProperties,IEnumerable<string[]> sourceValues)
     {
         var mp3Files = files.ToList();
-        var mp3Info = sourceInfo.ToArray();
+        var idValues = sourceValues.ToArray();
         var i = 0;
-        mp3Files.ForEach(file => ModifyMp3TagWithCsv(file, sourceProperties.ToArray(), mp3Info[i++]));
+        mp3Files.ForEach(file => ModifyMp3TagWithCsv(file, sourceProperties.ToArray(), idValues[i++]));
     }
 
     /// <summary>
-    /// Assigns the values from a CSV file to the MP3 tags of a TagLib.File based on mp3tag's exported CSV format.
+    /// Assigns the values from a CSV file to the MP3 tags of a TagLib.File.
     /// </summary>
     /// <param name="file">The TagLib.File object to modify.</param>
-    /// <param name="sourceCsv">The CSV file to use.</param>
-    private static void ModifyMp3TagWithCsv(TagLib.File file, string[] sourceProperties,string[] sourceInfo)
+    /// <param name="sourceProperties">The properties to modify as given by the CSV file</param>
+    /// <param name="sourceValues">The values to use as given by the CSV file</param>
+    private static void ModifyMp3TagWithCsv(TagLib.File file, string[] sourceProperties,string[] sourceValues)
     {
         foreach (var property in sourceProperties)
         {
-            ModifyMp3Tags(new TagLib.File[] {file}, property, sourceInfo[Array.IndexOf(sourceProperties, property)]);
+            ModifyMp3Tags(new [] {file}, property, sourceValues[Array.IndexOf(sourceProperties, property)]);
         }
     }
 
@@ -137,7 +139,7 @@ public static class Mp3TagsManager
         {
             foreach (XmlNode property in track.ChildNodes)
             {
-                ModifyMp3Tags(new TagLib.File[] {mp3Files[i]}, property.Name, property.InnerText);
+                ModifyMp3Tags(new [] {mp3Files[i]}, property.Name, property.InnerText);
             }
             i++;
         }
