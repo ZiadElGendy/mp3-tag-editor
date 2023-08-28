@@ -48,31 +48,15 @@ public static class Ui
 
     }
 
-    public static void ModifyMp3Menu()
+    public static string ModifyMp3Menu()
     {
         Console.Clear();
         Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n");
         var path = Console.ReadLine();
-
-        var overwriteSelection = OverwriteMenu();
-        List<TagLib.File> mp3s;
-        if (overwriteSelection)
-            mp3s = Mp3FileManager.LoadMp3Files(path).ToList();
-        else
-            mp3s = Mp3FileManager.LoadNewMp3Files(path).ToList();
-
-        //TODO: Add this back after fixing
-        //ViewPropertiesMenu(mp3s);
-
-        ModifyTagMenu(mp3s);
-
-        Mp3FileManager.SaveMp3Files(mp3s);
-        Console.WriteLine("\nModification complete.");
-        Thread.Sleep(1500);
-
+        return path ?? throw new NullReferenceException();
     }
 
-    public static bool OverwriteMenu()
+    public static bool OverwriteSelectionMenu()
     {
         Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
         var input = Console.ReadLine();
@@ -87,20 +71,39 @@ public static class Ui
         else
         {
             Console.WriteLine("Invalid input!");
-            return OverwriteMenu();
+            return OverwriteSelectionMenu();
         }
     }
 
-    //FIXME: This should take IEnumerable, and not List
-    public static void ViewPropertiesMenu(List<File> mp3s)
+    public static bool ImportSelectionMenu()
     {
-        if (mp3s.Count == 1)
+        Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
+        var input = Console.ReadLine();
+        if(input.ToLower() == "y")
         {
-            ViewFilePropertiesMenu(mp3s[0]);
+            return true;
+        }
+        else if(input.ToLower() == "n")
+        {
+            return false;
         }
         else
         {
-            ViewDirectoryPropertiesMenu(mp3s);
+            Console.WriteLine("Invalid input!");
+            return OverwriteSelectionMenu();
+        }
+    }
+
+    public static void ViewPropertiesMenu(IEnumerable<File> mp3s)
+    {
+        var mp3List = mp3s.ToList();
+        if (mp3List.Count == 1)
+        {
+            ViewFilePropertiesMenu(mp3List[0]);
+        }
+        else
+        {
+            ViewDirectoryPropertiesMenu(mp3List);
         }
     }
 
@@ -115,15 +118,16 @@ public static class Ui
         }
     }
 
-    //FIXME: This should take IEnumerable, and not List
-    private static void ViewDirectoryPropertiesMenu(List<File> mp3s)
+    private static void ViewDirectoryPropertiesMenu(IEnumerable<File> mp3s)
     {
-        foreach (var mp3 in mp3s)
+        var mp3List = mp3s.ToList();
+        foreach (var mp3 in mp3List)
         {
-            Console.WriteLine((mp3s.IndexOf(mp3)+1) + ") " + mp3.Name);
+            Console.WriteLine((mp3List.IndexOf(mp3)+1) + ") " + mp3.Name);
         }
 
         Console.WriteLine("\nDo you want to display file properties? (y/n)");
+
         var decision = Console.ReadLine();
         if (decision.ToLower() == "y")
         {
@@ -136,25 +140,18 @@ public static class Ui
                 throw new InvalidCastException("Invalid input");
             }
 
-            ViewFilePropertiesMenu(mp3s[fileIndex]);
+            ViewFilePropertiesMenu(mp3List[fileIndex]);
         }
     }
 
-    public static void ModifyTagMenu(List<TagLib.File> mp3s)
+    public static (string, string) ModifyTagMenu(IEnumerable<TagLib.File> mp3s)
     {
         Console.WriteLine("\nEnter which tag you wish to modify: ");
         var tag = Console.ReadLine();
         Console.WriteLine("\nEnter the value you want: ");
         var value = Console.ReadLine();
-        try
-        {
-            Mp3TagsManager.ModifyMp3Tags(mp3s, tag, value);
-        }
-        catch(Exception e)
-        {
-            Console.WriteLine("Invalid input!");
-            ModifyTagMenu(mp3s);
-        }
+        return (tag, value);
+
     }
 
 }
