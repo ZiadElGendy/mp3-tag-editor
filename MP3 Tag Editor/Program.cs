@@ -1,4 +1,6 @@
-﻿namespace MP3_Tag_Editor;
+﻿using File = TagLib.File;
+
+namespace MP3_Tag_Editor;
 
 internal static class Program
 {
@@ -7,6 +9,7 @@ internal static class Program
     {
         while (!_exit)
         {
+            Console.Clear();
             var methodSelection = Ui.MainMenu();
             switch (methodSelection)
             {
@@ -19,30 +22,50 @@ internal static class Program
                     break;
 
                 case "e":
-                    var mp3Path = Ui.ModifyMp3Menu();
-                    var overwriteSelection = Ui.OverwriteSelectionMenu();
-
-                    List<TagLib.File> mp3s;
-                    if (overwriteSelection)
-                        mp3s = Mp3FileManager.LoadMp3Files(mp3Path).ToList();
-                    else
-                        mp3s = Mp3FileManager.LoadNewMp3Files(mp3Path).ToList();
-
-                    //TODO: Add this back after fixing
-                    //ViewPropertiesMenu(mp3s);
-
-                    var correctInput = false;
-                    while (!correctInput)
+                    var validPath = false;
+                    List<File> mp3s = new();
+                    while(!validPath)
                     {
+                        try
+                        {
+                            Console.Clear();
+                            var mp3Path = Ui.ModifyMp3Menu();
+                            var willOverwrite = Ui.OverwriteSelectionMenu();
+
+                            if (willOverwrite)
+                            {
+                                mp3s = Mp3FileManager.LoadMp3Files(mp3Path).ToList();
+                            }
+                            else
+                            {
+                                mp3s = Mp3FileManager.LoadNewMp3Files(mp3Path).ToList();
+                            }
+                            validPath = true;
+                        }
+                        catch (Exception e)
+                        {
+                            Console.WriteLine("\nInvalid path, please try again!");
+                            Thread.Sleep(1000);
+                        }
+                    }
+
+                    var validModification = false;
+                    while (!validModification)
+                    {
+                        Console.Clear();
+                        Ui.ViewPropertiesMenu(mp3s);
+
                         try
                         {
                             var modifications = Ui.ModifyTagMenu(mp3s);
                             Mp3TagsManager.ModifyMp3Tags(mp3s, modifications.Item1, modifications.Item2);
-                            correctInput = true;
+                            validModification = true;
                         }
                         catch (Exception e)
                         {
-                            Console.WriteLine("Incorrect input, please try again!");
+                            Console.WriteLine("\nInvalid input, please try again!");
+                            Thread.Sleep(1000);
+                            Console.Clear();
                         }
                     }
 

@@ -15,7 +15,6 @@ public static class Ui
      */
     public static string MainMenu()
     {
-        Console.Clear();
         Console.WriteLine("Welcome to MP3 Tag Editor\n\n" +
             "Enter h for help\n" +
             "Enter e to enter MP3 modification\n" +
@@ -50,7 +49,6 @@ public static class Ui
 
     public static string ModifyMp3Menu()
     {
-        Console.Clear();
         Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n");
         var path = Console.ReadLine();
         return path ?? throw new NullReferenceException();
@@ -59,7 +57,7 @@ public static class Ui
     public static bool OverwriteSelectionMenu()
     {
         Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
-        var input = Console.ReadLine();
+        var input = Console.ReadLine() ?? throw new NullReferenceException();
         if(input.ToLower() == "y")
         {
             return true;
@@ -68,17 +66,13 @@ public static class Ui
         {
             return false;
         }
-        else
-        {
-            Console.WriteLine("Invalid input!");
-            return OverwriteSelectionMenu();
-        }
+        throw new ArgumentException("Input was not 'y' or 'n'");
     }
 
     public static bool ImportSelectionMenu()
     {
-        Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
-        var input = Console.ReadLine();
+        Console.WriteLine("\nDo you want to import tag information? (y/n)");
+        var input = Console.ReadLine() ?? throw new NullReferenceException();
         if(input.ToLower() == "y")
         {
             return true;
@@ -87,11 +81,7 @@ public static class Ui
         {
             return false;
         }
-        else
-        {
-            Console.WriteLine("Invalid input!");
-            return OverwriteSelectionMenu();
-        }
+        throw new ArgumentException("Input was not 'y' or 'n'");
     }
 
     public static void ViewPropertiesMenu(IEnumerable<File> mp3s)
@@ -107,15 +97,39 @@ public static class Ui
         }
     }
 
-    public static void ViewFilePropertiesMenu(TagLib.File mp3)
+    private static void ViewFilePropertiesMenu(TagLib.File mp3)
     {
-        //FIXME: This line simply does not work. I hate it here
-        PropertyInfo[] properties = mp3.GetTag(TagTypes.Id3v1).GetType().GetProperties();
-
-        foreach (PropertyInfo p in properties)
+        var tag = mp3.Tag;
+        foreach(PropertyDescriptor descriptor in TypeDescriptor.GetProperties(tag))
         {
-            System.Console.WriteLine(p.Name + " : " + p.GetValue(mp3));
+            try
+            {
+                var name = descriptor.Name;
+                var value = descriptor.GetValue(tag);
+                var valueString = value is Array? string.Join(", ", value) : value?.ToString();
+
+                if (IsValidToStringHelper(name, valueString))
+                {
+                    Console.WriteLine("{0}: {1}", name, valueString);
+                }
+            }
+            catch (Exception e)
+            {
+                //Skip the weirdos
+            }
         }
+    }
+
+    private static bool IsValidToStringHelper(string name, string value)
+    {
+        var undesiredNames = new string[] {"StartTag","EndTag","TagTypes","Tags","ReplayGainTrackGain",
+                    "ReplayGainTrackPeak", "ReplayGainAlbumGain", "ReplayGainAlbumPeak", "IsEmpty", "Pictures"};
+        var undesiredValues = new string[] {"System.String[]", "NaN"};
+
+        if (string.IsNullOrEmpty(value)) return false;
+        if (undesiredNames.Contains(name)) return false;
+        if (undesiredValues.Contains(value)) return false;
+        return true;
     }
 
     private static void ViewDirectoryPropertiesMenu(IEnumerable<File> mp3s)
@@ -144,7 +158,7 @@ public static class Ui
         }
     }
 
-    public static (string, string) ModifyTagMenu(IEnumerable<TagLib.File> mp3s)
+    public static (string?, string?) ModifyTagMenu(IEnumerable<TagLib.File> mp3s)
     {
         Console.WriteLine("\nEnter which tag you wish to modify: ");
         var tag = Console.ReadLine();
@@ -152,6 +166,12 @@ public static class Ui
         var value = Console.ReadLine();
         return (tag, value);
 
+    }
+
+    public static void ViewPropertiesTest()
+    {
+        var mp3 = Mp3FileManager.LoadMp3Files(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s\01 No Escape.mp3");
+        ViewPropertiesMenu(mp3);
     }
 
 }
