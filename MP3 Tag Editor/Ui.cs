@@ -1,18 +1,18 @@
 ﻿using System.ComponentModel;
-using System.Reflection;
 using MP3_Tag_Editor.Enums;
-using TagLib;
-using File = TagLib.File;
 
 namespace MP3_Tag_Editor;
 
+/// <summary>
+/// Provides methods for taking inputs and outputting to console.
+/// </summary>
 public static class Ui
 {
-    /*current flow (in my head)
-     * in a loop, main will call MainMenu()
-     * then depending on 3 options, will either call HelpMenu(), Exit, or enter the ModifyMenu() Flow, which will be self contained in it's methods
-     * after the modify ends, the loop starts again at MainMenu(), prompting the user to choose what to do again
-     */
+
+    /// <summary>
+    /// Displays main menu and returns user input.
+    /// </summary>
+    /// <returns>The user's choice of MP3 Tag Editor functionality.</returns>
     public static string MainMenu()
     {
         Console.WriteLine("Welcome to MP3 Tag Editor\n\n" +
@@ -24,6 +24,9 @@ public static class Ui
         return input;
     }
 
+    /// <summary>
+    /// Displays help menu.
+    /// </summary>
     public static void HelpMenu()
     {
         Console.WriteLine("This is MP3 Tag Editor, a program to modify MP3 file tags.\n" +
@@ -35,7 +38,7 @@ public static class Ui
 
         if (input == "y")
         {
-            Console.WriteLine("The accepted fields to change are:\n");
+            Console.WriteLine("The supported fields to change are:\n");
             foreach (Enum tag in Enum.GetValues(typeof(Mp3Tag)))
             {
                 Console.WriteLine(tag);
@@ -47,6 +50,11 @@ public static class Ui
 
     }
 
+    /// <summary>
+    /// Displays prompt for mp3 path input.
+    /// </summary>
+    /// <returns>The path of the mp3 file or directory to modify.</returns>
+    /// <exception cref="NullReferenceException">Thrown when input is null.</exception>
     public static string ModifyMp3Menu()
     {
         Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n");
@@ -54,10 +62,15 @@ public static class Ui
         return path ?? throw new NullReferenceException();
     }
 
+    /// <summary>
+    /// Displays prompt for overwrite selection.
+    /// </summary>
+    /// <returns>True if user wants to overwrite, False if not.</returns>
+    /// <exception cref="ArgumentException">Thrown when input is not 'y' or 'n'.</exception>
     public static bool OverwriteSelectionMenu()
     {
         Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
-        var input = Console.ReadLine() ?? throw new NullReferenceException();
+        var input = Console.ReadLine();
         if(input.ToLower() == "y")
         {
             return true;
@@ -84,20 +97,29 @@ public static class Ui
         throw new ArgumentException("Input was not 'y' or 'n'");
     }
 
-    public static void ViewPropertiesMenu(IEnumerable<File> mp3s)
+    /// <summary>
+    /// Displays appropriate properties menu based on file or directory path.
+    /// </summary>
+    /// <returns>true if user want to view another file in directory, false if not</returns>
+    /// <param name="mp3s">MP3 files to modify</param>
+    public static bool ViewPropertiesMenu(IEnumerable<TagLib.File> mp3s)
     {
         var mp3List = mp3s.ToList();
         if (mp3List.Count == 1)
         {
-            ViewFilePropertiesMenu(mp3List[0]);
+            return ViewFilePropertiesMenu(mp3List[0]);
         }
         else
         {
-            ViewDirectoryPropertiesMenu(mp3List);
+            return ViewDirectoryPropertiesMenu(mp3List);
         }
     }
 
-    private static void ViewFilePropertiesMenu(TagLib.File mp3)
+    /// <summary>
+    /// Display relevant properties for a single MP3 file.
+    /// </summary>
+    /// <param name="mp3">The MP3 file to inspect</param>
+    private static bool ViewFilePropertiesMenu(TagLib.File mp3)
     {
         var tag = mp3.Tag;
         foreach(PropertyDescriptor descriptor in TypeDescriptor.GetProperties(tag))
@@ -118,13 +140,18 @@ public static class Ui
                 //Skip the weirdos
             }
         }
+
+        return false;
     }
 
+    /// <summary>
+    /// Removes undesired properties from the properties menu.
+    /// </summary>
     private static bool IsValidToStringHelper(string name, string value)
     {
-        var undesiredNames = new string[] {"StartTag","EndTag","TagTypes","Tags","ReplayGainTrackGain",
+        var undesiredNames = new [] {"StartTag","EndTag","TagTypes","Tags","ReplayGainTrackGain",
                     "ReplayGainTrackPeak", "ReplayGainAlbumGain", "ReplayGainAlbumPeak", "IsEmpty", "Pictures"};
-        var undesiredValues = new string[] {"System.String[]", "NaN"};
+        var undesiredValues = new [] {"System.String[]", "NaN"};
 
         if (string.IsNullOrEmpty(value)) return false;
         if (undesiredNames.Contains(name)) return false;
@@ -132,33 +159,76 @@ public static class Ui
         return true;
     }
 
-    private static void ViewDirectoryPropertiesMenu(IEnumerable<File> mp3s)
+    /// <summary>
+    /// Display menu for selecting MP3 file from directory to view properties.
+    /// </summary>
+    /// <param name="mp3s">The MP3 directory to inspect</param>
+    /// <returns>true if user want to view another file, false if not</returns>
+    /// <exception cref="ArgumentException">Thrown when user gives incorrect selection input</exception>
+    private static bool ViewDirectoryPropertiesMenu(IEnumerable<TagLib.File> mp3s)
     {
         var mp3List = mp3s.ToList();
         foreach (var mp3 in mp3List)
         {
-            Console.WriteLine((mp3List.IndexOf(mp3)+1) + ") " + mp3.Name);
+            if (!string.IsNullOrEmpty(mp3.Tag.Title))
+            {
+                Console.WriteLine((mp3List.IndexOf(mp3) + 1) + ") " + mp3.Tag.Title);
+            }
+            else
+            {
+                Console.WriteLine((mp3List.IndexOf(mp3) + 1) + ") " + mp3.Name);
+            }
         }
 
         Console.WriteLine("\nDo you want to display file properties? (y/n)");
 
-        var decision = Console.ReadLine();
-        if (decision.ToLower() == "y")
+        var displayFileInput = Console.ReadLine();
+        if (displayFileInput.ToLower() == "y")
         {
-            Console.WriteLine("\n Select file number: ");
+            Console.WriteLine("\nSelect file number: ");
             var fileSelection = Console.ReadLine();
             var fileIndex = int.TryParse(fileSelection, out var index) ? index - 1 : -1;
 
             if (fileIndex == -1)
             {
-                throw new InvalidCastException("Invalid input");
+                throw new ArgumentException("Invalid input");
             }
 
             ViewFilePropertiesMenu(mp3List[fileIndex]);
         }
+        else if (displayFileInput.ToLower() == "n")
+        {
+            return false;
+        }
+        else
+        {
+            throw new ArgumentException("Input was not 'y' or 'n'");
+        }
+
+        Console.WriteLine("\nDo you want to view another property? (y/n)");
+        var displayAnotherInput = Console.ReadLine();
+
+        if (displayAnotherInput.ToLower() == "y")
+        {
+            return true;
+        }
+        else if (displayAnotherInput.ToLower() == "n")
+        {
+            return false;
+        }
+        else
+        {
+            throw new ArgumentException("Input was not 'y' or 'n'");
+        }
+
     }
 
-    public static (string?, string?) ModifyTagMenu(IEnumerable<TagLib.File> mp3s)
+    /// <summary>
+    /// Displays menu for modification input
+    /// </summary>
+    /// <param name="mp3s">The MP3 files to modify</param>
+    /// <returns>A tuple of the mp3 tag name and value respectively</returns>
+    public static (string?, string?) ModifyTagMenu()
     {
         Console.WriteLine("\nEnter which tag you wish to modify: ");
         var tag = Console.ReadLine();
@@ -168,9 +238,34 @@ public static class Ui
 
     }
 
+    /// <summary>
+    /// Displays menu for modifying another tag.
+    /// </summary>
+    /// <returns>true if user wants to select another tag, false otherwise.</returns>
+    /// <exception cref="ArgumentException">Thrown when input is not 'y' or 'n'.</exception>
+    public static bool ModifyAgainMenu()
+    {
+        Console.WriteLine("\nDo you want to modify another tag? (y/n)");
+        var input = Console.ReadLine();
+
+        if(input.ToLower() == "y")
+        {
+                return true;
+        }
+        else if(input.ToLower() == "n")
+        {
+                return false;
+        }
+        else
+        {
+            Console.WriteLine("Incorrect input, please try again.");
+            return ModifyAgainMenu();
+        }
+    }
+
     public static void ViewPropertiesTest()
     {
-        var mp3 = Mp3FileManager.LoadMp3Files(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s\01 No Escape.mp3");
+        var mp3 = Mp3FileManager.LoadMp3Files(@"D:\Documents\Programming\Group Project\2023\ZMBY 3\mp3-tag-editor\Sample MP3s");
         ViewPropertiesMenu(mp3);
     }
 

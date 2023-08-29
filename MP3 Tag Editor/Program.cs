@@ -4,7 +4,7 @@ namespace MP3_Tag_Editor;
 
 internal static class Program
 {
-    private static bool _exit = false;
+    private static bool _exit;
     private static void Main(string[] args)
     {
         while (!_exit)
@@ -22,9 +22,9 @@ internal static class Program
                     break;
 
                 case "e":
-                    var validPath = false;
+                    var isValidPath = false;
                     List<File> mp3s = new();
-                    while(!validPath)
+                    while(!isValidPath)
                     {
                         try
                         {
@@ -32,15 +32,11 @@ internal static class Program
                             var mp3Path = Ui.ModifyMp3Menu();
                             var willOverwrite = Ui.OverwriteSelectionMenu();
 
-                            if (willOverwrite)
-                            {
-                                mp3s = Mp3FileManager.LoadMp3Files(mp3Path).ToList();
-                            }
-                            else
-                            {
-                                mp3s = Mp3FileManager.LoadNewMp3Files(mp3Path).ToList();
-                            }
-                            validPath = true;
+                            mp3s = willOverwrite ?
+                                Mp3FileManager.LoadMp3Files(mp3Path).ToList() :
+                                Mp3FileManager.LoadNewMp3Files(mp3Path).ToList();
+
+                            isValidPath = true;
                         }
                         catch (Exception e)
                         {
@@ -49,17 +45,23 @@ internal static class Program
                         }
                     }
 
-                    var validModification = false;
-                    while (!validModification)
+                    var isFinishedModification = false;
+                    while (!isFinishedModification)
                     {
                         Console.Clear();
-                        Ui.ViewPropertiesMenu(mp3s);
+
+                        var isViewAnotherProperty = true;
+                        while (isViewAnotherProperty)
+                        {
+                            Console.Clear();
+                            isViewAnotherProperty = Ui.ViewPropertiesMenu(mp3s);
+                        }
 
                         try
                         {
-                            var modifications = Ui.ModifyTagMenu(mp3s);
+                            var modifications = Ui.ModifyTagMenu();
                             Mp3TagsManager.ModifyMp3Tags(mp3s, modifications.Item1, modifications.Item2);
-                            validModification = true;
+                            isFinishedModification = !Ui.ModifyAgainMenu(); //loops recursively if invalid input, was easier than making another while loop
                         }
                         catch (Exception e)
                         {
