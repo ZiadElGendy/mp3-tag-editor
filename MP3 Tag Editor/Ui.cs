@@ -17,7 +17,8 @@ public static class Ui
     {
         Console.WriteLine("Welcome to MP3 Tag Editor\n\n" +
             "Enter h for help\n" +
-            "Enter e to enter MP3 modification\n" +
+            "Enter m to manually edit MP3 tags\n" +
+            "Enter i to import MP3 tags from an external source\n" +
             "Enter x to exit program\n");
 
         var input = Console.ReadLine();
