@@ -41,18 +41,18 @@ public static class SourceFileManager
     /// <param name="filePath">The path of the file.</param>
     /// <returns>A tuple containing a collection of properties and a 2D array of id information per song respectively</returns>
     /// <exception cref="InvalidSourcePathException">Thrown when the specified CSV file does not exist.</exception>
-    private static (IEnumerable<string>, IEnumerable<string[]>) LoadCsvImportFile(string filePath)
+    private static (IEnumerable<string>?, IEnumerable<string[]>?) LoadCsvImportFile(string filePath)
     {
         //Assuming CSV is in format exported by mp3tag application
         using (var csvParser = new TextFieldParser(filePath))
         {
             csvParser.SetDelimiters(";");
 
-            var idProperties = csvParser.ReadFields();
+            var idProperties = csvParser.ReadFields()?? throw new InvalidSourcePathException(filePath, "The specified CSV file is in an invalid format.");
             var idValues = new List<string[]>();
             while (!csvParser.EndOfData)
             {
-                idValues.Add(csvParser.ReadFields()?? new string[0]);
+                idValues.Add(csvParser.ReadFields()?? throw new InvalidSourcePathException(filePath, "The specified CSV file is in an invalid format."));
             }
             return (idProperties, idValues);
         }
@@ -69,44 +69,4 @@ public static class SourceFileManager
         xmlFile.Load(filePath);
         return xmlFile;
     }
-    private static void ModifyFromCsvTest()
-    {
-        var mp3DirTestPath = "ADD DIRPATH HERE";
-        var csvTestPath = "ADD FILEPATH HERE";
-
-        var mp3Files = Mp3FileManager.LoadMp3Files(mp3DirTestPath);
-        var csvFile = LoadImportFile(csvTestPath);
-
-        Mp3TagsManager.ModifyMp3Tags(mp3Files, Mp3Tag.Title, "Test");
-        Mp3FileManager.SaveMp3Files(mp3Files);
-
-        Console.WriteLine("Check");
-        Console.ReadLine();
-
-        Mp3TagsManager.ModifyMp3TagsWithCsv(mp3Files, csvFile.Item1, csvFile.Item2);
-        Mp3FileManager.SaveMp3Files(mp3Files);
-        Console.WriteLine("Done");
-        Console.ReadLine();
-    }
-
-    private static void ModifyFromXmlTest()
-    {
-        var mp3DirTestPath = "ADD DIRPATH HERE";
-        var xmlTestPath = "ADD FILEPATH HERE";
-
-        var mp3Files = Mp3FileManager.LoadMp3Files(mp3DirTestPath);
-        var csvFile = LoadImportFile(xmlTestPath);
-
-        Mp3TagsManager.ModifyMp3Tags(mp3Files, Mp3Tag.Title, "Test");
-        Mp3FileManager.SaveMp3Files(mp3Files);
-
-        Console.WriteLine("Check");
-        Console.ReadLine();
-
-        Mp3TagsManager.ModifyMp3TagsWithXml(mp3Files, csvFile);
-        Mp3FileManager.SaveMp3Files(mp3Files);
-        Console.WriteLine("Done");
-        Console.ReadLine();
-    }
-
 }

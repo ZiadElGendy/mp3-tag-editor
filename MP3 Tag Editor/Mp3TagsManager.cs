@@ -119,7 +119,8 @@ public static class Mp3TagsManager
     {
         foreach (var property in sourceProperties)
         {
-            ModifyMp3Tags(new [] {file}, property, sourceValues[Array.IndexOf(sourceProperties, property)]);
+            Enum.TryParse(property, out Mp3Tag tag);
+            ModifyMp3Tag(file, tag, sourceValues[Array.IndexOf(sourceProperties, property)]);
         }
     }
 
@@ -139,7 +140,8 @@ public static class Mp3TagsManager
         {
             foreach (XmlNode property in track.ChildNodes)
             {
-                ModifyMp3Tags(new [] {mp3Files[i]}, property.Name, property.InnerText);
+                Enum.TryParse(property.Name, out Mp3Tag tag);
+                ModifyMp3Tag(mp3Files[i], tag, property.InnerText);
             }
             i++;
         }
