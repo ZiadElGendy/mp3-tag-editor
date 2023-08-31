@@ -16,7 +16,7 @@ public static class SourceFileManager
     /// <param name="filePath">The path of the file.</param>
     /// <returns>A 2D array representing fields for each MP3 File in the collection</returns>
     /// <exception cref="InvalidSourcePathException">Thrown when the specified CSV file does not exist.</exception>
-    public static dynamic LoadImportFile(string filePath)
+    public static dynamic LoadSourceFile(string filePath)
     {
         if (!File.Exists(filePath))
         {
@@ -25,11 +25,11 @@ public static class SourceFileManager
 
         if (Path.GetExtension(filePath) == ".csv")
         {
-            return LoadCsvImportFile(filePath);
+            return LoadCsvSourceFile(filePath);
         }
         else if (Path.GetExtension(filePath) == ".xml")
         {
-            return LoadXmlImportFile(filePath);
+            return LoadXmlSourceFile(filePath);
         }
 
         throw new InvalidSourcePathException(filePath, "The specified file is not a valid external source file.");
@@ -41,7 +41,7 @@ public static class SourceFileManager
     /// <param name="filePath">The path of the file.</param>
     /// <returns>A tuple containing a collection of properties and a 2D array of id information per song respectively</returns>
     /// <exception cref="InvalidSourcePathException">Thrown when the specified CSV file does not exist.</exception>
-    private static (IEnumerable<string>?, IEnumerable<string[]>?) LoadCsvImportFile(string filePath)
+    private static (IEnumerable<string>?, IEnumerable<string[]>?) LoadCsvSourceFile(string filePath)
     {
         //Assuming CSV is in format exported by mp3tag application
         using (var csvParser = new TextFieldParser(filePath))
@@ -63,7 +63,7 @@ public static class SourceFileManager
     /// </summary>
     /// <param name="filePath">The path of the file</param>
     /// <returns>An XmlDocument object of the given XML file</returns>
-    private static XmlDocument LoadXmlImportFile(string filePath)
+    private static XmlDocument LoadXmlSourceFile(string filePath)
     {
         var xmlFile = new XmlDocument();
         xmlFile.Load(filePath);
