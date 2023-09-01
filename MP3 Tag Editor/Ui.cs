@@ -17,7 +17,8 @@ public static class Ui
     {
         Console.WriteLine("Welcome to MP3 Tag Editor\n\n" +
             "Enter h for help\n" +
-            "Enter e to enter MP3 modification\n" +
+            "Enter m to manually edit MP3 tags\n" +
+            "Enter i to import MP3 tags from an external source\n" +
             "Enter x to exit program\n");
 
         var input = Console.ReadLine();
@@ -55,9 +56,16 @@ public static class Ui
     /// </summary>
     /// <returns>The path of the mp3 file or directory to modify.</returns>
     /// <exception cref="NullReferenceException">Thrown when input is null.</exception>
-    public static string ModifyMp3Menu()
+    public static string Mp3PathMenu()
     {
         Console.WriteLine("Enter the path to your Mp3 file or directory that includes Mp3 files that you wish to modify\n");
+        var path = Console.ReadLine();
+        return path ?? throw new NullReferenceException();
+    }
+
+    public static string SourcePathMenu()
+    {
+        Console.WriteLine("Enter the path to the source file you want to import from");
         var path = Console.ReadLine();
         return path ?? throw new NullReferenceException();
     }
@@ -71,21 +79,6 @@ public static class Ui
     {
         Console.WriteLine("\nDo you want to overwrite the original files? (y/n)");
         var input = Console.ReadLine();
-        if(input.ToLower() == "y")
-        {
-            return true;
-        }
-        else if(input.ToLower() == "n")
-        {
-            return false;
-        }
-        throw new ArgumentException("Input was not 'y' or 'n'");
-    }
-
-    public static bool ImportSelectionMenu()
-    {
-        Console.WriteLine("\nDo you want to import tag information? (y/n)");
-        var input = Console.ReadLine() ?? throw new NullReferenceException();
         if(input.ToLower() == "y")
         {
             return true;

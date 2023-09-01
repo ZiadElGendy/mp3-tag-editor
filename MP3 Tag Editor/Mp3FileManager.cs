@@ -1,10 +1,11 @@
+using Microsoft.VisualBasic.FileIO;
 using MP3_Tag_Editor.Exceptions;
 using File = System.IO.File;
 
 namespace MP3_Tag_Editor;
 
 /// <summary>
-///     Provides methods for managing and loading MP3 files.
+/// Provides methods for managing and loading MP3 files.
 /// </summary>
 public static class Mp3FileManager
 {
@@ -18,6 +19,7 @@ public static class Mp3FileManager
     /// </summary>
     /// <param name="path">The path of the file or directory.</param>
     /// <returns>A collection of loaded <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 files.</returns>
+    /// <exception cref="InvalidMp3PathException">Thrown when the specified MP3s do not exist. </exception>
     public static IEnumerable<TagLib.File> LoadMp3Files(string path)
     {
         if (File.Exists(path))
@@ -34,6 +36,7 @@ public static class Mp3FileManager
     /// </summary>
     /// <param name="path">The path of the file or directory.</param>
     /// <returns>A collection of loaded <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 files.</returns>
+    /// <exception cref="InvalidMp3PathException">Thrown when the specified MP3s do not exist. </exception>
     public static IEnumerable<TagLib.File> LoadNewMp3Files(string path)
     {
         if (File.Exists(path))
@@ -86,6 +89,7 @@ public static class Mp3FileManager
     /// </summary>
     /// <param name="filePath">The path of the MP3 file.</param>
     /// <returns>The loaded <see cref="TagLib"/> <see cref="TagLib.File"/> MP3 file.</returns>
+    /// <exception cref="InvalidMp3PathException">Thrown when the specified MP3 does not exist. </exception>
     private static TagLib.File LoadMp3FileFromPath(string filePath)
     {
         if (!IsMp3FileExtensionValid(filePath))
