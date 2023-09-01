@@ -232,8 +232,17 @@ public static class Ui
     {
         Console.WriteLine("\nEnter which tag you wish to modify: ");
         var tag = Console.ReadLine();
-        Console.WriteLine("\nEnter the value you want: ");
-        var value = Console.ReadLine();
+        string value;
+        if (tag.ToLower() == "lyrics") 
+        {
+            Console.WriteLine("Enter your Lyrics line by line, to finish press ctrl+z");
+            value = Console.In.ReadToEnd();
+        }
+        else 
+        {
+            Console.WriteLine("\nEnter the value you want: ");
+            value = Console.ReadLine();
+        }
         return (tag, value);
 
     }
